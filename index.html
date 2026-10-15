@@ -528,6 +528,7 @@ async function loadStrudel() {
 }
 
 let loadError = "";
+let strudelRepl = null;
 const ready = (async () => {
   try {
     await loadStrudel();
@@ -538,7 +539,9 @@ const ready = (async () => {
   }
   // 鼓組音色從 GitHub 載入；失敗時不影響合成器音色
   let drumsOk = true;
-  await initStrudel({
+  // 保存 Strudel 播放器本身：Strudel 執行程式碼時會覆寫全域的 hush()，
+  // 之後再呼叫 hush() 無法停止播放，所以一律透過 strudelRepl 控制
+  strudelRepl = await initStrudel({
     prebake: async () => {
       try { await samples("github:tidalcycles/dirt-samples"); }
       catch (err) { drumsOk = false; console.warn("鼓組音色載入失敗", err); }
@@ -560,7 +563,9 @@ async function play(code) {
       setStatus(loadError || "音色尚未載入，請重新整理", true);
       return;
     }
-    await evaluate(code);
+    if (!state.playing) return;           // 等待載入時已按停止
+    await strudelRepl.evaluate(code);
+    if (!state.playing) { strudelRepl.stop(); return; }   // 執行途中已按停止
     setStatus(`播放中：${state.module.name} 風格靈感`);
   } catch (err) {
     console.error(err);
@@ -587,7 +592,8 @@ function setPlaying(on, stopMessage = "已停止") {
     pauseOriginal();
     refresh(true);
   } else {
-    if (state.ready) hush();
+    clearTimeout(timer);                   // 取消尚未送出的滑桿更新
+    if (strudelRepl) strudelRepl.stop();
     setStatus(stopMessage);
   }
   updateAB();
@@ -595,8 +601,11 @@ function setPlaying(on, stopMessage = "已停止") {
 playBtn.addEventListener("click", () => setPlaying(!state.playing));
 
 document.getElementById("runBtn").addEventListener("click", () => {
+  const custom = document.getElementById("code").value;   // 先讀取手動修改的程式碼
   if (!state.playing) setPlaying(true);
-  play(document.getElementById("code").value);
+  clearTimeout(timer);                     // 避免自動產生的程式碼蓋掉手動修改
+  document.getElementById("code").value = custom;
+  play(custom);
 });
 
 /* ---------- 對照原曲（YouTube 官方 MV） ----------

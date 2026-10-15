@@ -133,10 +133,6 @@
   .info p { margin: 16px 0 0; font-size: 14px; line-height: 1.7; border-top: 1px solid var(--line); padding-top: 14px; }
   .info .note { font-size: 11.5px; color: var(--quiet); margin-top: 10px; }
 
-  details summary { cursor: pointer; font-size: 14px; font-weight: 500; letter-spacing: .16em; list-style: none; }
-  details summary::-webkit-details-marker { display: none; }
-  details summary::after { content: " ＋"; color: var(--quiet); }
-  details[open] summary::after { content: " －"; }
   .code-hint { font-size: 12px; color: var(--quiet); margin: 10px 0; }
   textarea {
     width: 100%; height: 220px; resize: vertical; padding: 12px; border-radius: 10px;
@@ -308,12 +304,12 @@
       <div class="note" id="infoNote"></div>
     </div>
     <div class="panel">
-      <details id="codePanel">
-        <summary>程式碼面板</summary>
+      <div id="codePanel">
+        <h2>程式碼面板</h2>
         <div class="code-hint">這段 Strudel 程式碼會隨著你的操作即時改寫。也可以直接修改後按「執行」，體驗 live coding。</div>
         <textarea id="code" spellcheck="false" wrap="off"></textarea>
         <button class="run-btn" id="runBtn">執行修改後的程式碼</button>
-      </details>
+      </div>
     </div>
   </div>
 

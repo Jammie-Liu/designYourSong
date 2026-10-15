@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>偶像風格音樂實驗室</title>
+<style>
+  :root {
+    --bg: #1c1d20;
+    --panel: #24262a;
+    --line: #3a3d43;
+    --ink: #e6e6e3;
+    --quiet: #9a9da3;
+    --accent: #8c5a5a;
+    --silver: linear-gradient(135deg, #f4f5f7 0%, #c9ccd1 35%, #8f949b 60%, #e3e5e8 100%);
+    --silver-flat: #c9ccd1;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    font-weight: 300;
+    transition: background .6s ease;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 20px 48px; }
+
+  /* header */
+  header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding-bottom: 20px; border-bottom: 1px solid var(--line);
+  }
+  .brand small {
+    display: block; font-size: 11px; letter-spacing: .32em; color: var(--quiet); text-transform: uppercase;
+  }
+  .brand h1 {
+    margin: 6px 0 0; font-size: 26px; font-weight: 500; letter-spacing: .14em;
+    background: var(--silver); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .play-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 22px; border-radius: 999px; border: 1px solid #b9bdc3;
+    background: var(--silver); color: #1c1d20; font: inherit; font-weight: 500; letter-spacing: .1em;
+    cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 10px rgba(0,0,0,.35);
+  }
+  .play-btn:active { transform: translateY(1px); }
+  .play-btn .icon { width: 0; height: 0; border-left: 10px solid #1c1d20; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+  .play-btn.playing .icon { width: 10px; height: 12px; border: 0; border-left: 3px solid #1c1d20; border-right: 3px solid #1c1d20; }
+  .status { font-size: 12px; color: var(--quiet); margin-top: 10px; min-height: 18px; }
+  .status.error { color: #d39a8f; }
+
+  .section-title { font-size: 12px; letter-spacing: .28em; color: var(--quiet); margin: 28px 0 12px; }
+
+  /* module cards */
+  .modules { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+  .card {
+    position: relative; text-align: left; padding: 16px 14px 14px; border-radius: 14px;
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink);
+    font: inherit; cursor: pointer; transition: border-color .2s, transform .2s;
+  }
+  .card:hover { transform: translateY(-2px); }
+  .card .swatch { width: 22px; height: 22px; border-radius: 50%; margin-bottom: 14px; box-shadow: 0 0 0 2px #2e3035, 0 0 0 3px #8f949b; }
+  .card .name { font-size: 15px; font-weight: 500; letter-spacing: .04em; }
+  .card .tag { font-size: 11.5px; color: var(--quiet); margin-top: 4px; }
+  .card.active { border-color: var(--silver-flat); background: color-mix(in srgb, var(--card-color) 22%, var(--panel)); }
+  .card.active::after {
+    content: ""; position: absolute; inset: -1px; border-radius: 14px; padding: 1px;
+    background: var(--silver); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+  }
+
+  /* controls */
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .panel h2 { margin: 0 0 16px; font-size: 14px; font-weight: 500; letter-spacing: .16em; }
+
+  .slider-row { display: grid; grid-template-columns: 64px 1fr 56px; align-items: center; gap: 12px; margin: 14px 0; }
+  .slider-row label { font-size: 14px; }
+  .slider-row output { font-size: 12px; color: var(--quiet); text-align: right; font-variant-numeric: tabular-nums; }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; background: var(--line); outline: none; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--silver); border: 1px solid #7d8188; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.5);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%; background: var(--silver);
+    border: 1px solid #7d8188; cursor: pointer;
+  }
+
+  .tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+  .toggle { display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 14px; user-select: none; }
+  .toggle input { display: none; }
+  .switch { position: relative; width: 40px; height: 22px; border-radius: 22px; background: #3a3d43; border: 1px solid #50545b; transition: background .2s; flex-shrink: 0; }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+    background: var(--silver); transition: left .2s; box-shadow: 0 1px 3px rgba(0,0,0,.5);
+  }
+  .toggle input:checked + .switch { background: color-mix(in srgb, var(--accent) 70%, #3a3d43); }
+  .toggle input:checked + .switch::after { left: 20px; }
+  .toggle .hint { display: block; font-size: 11px; color: var(--quiet); }
+
+  /* info + code */
+  .bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .info dl { margin: 0; display: grid; grid-template-columns: 76px 1fr; gap: 8px 12px; font-size: 13.5px; }
+  .info dt { color: var(--quiet); }
+  .info dd { margin: 0; }
+  .info p { margin: 16px 0 0; font-size: 14px; line-height: 1.7; border-top: 1px solid var(--line); padding-top: 14px; }
+  .info .note { font-size: 11.5px; color: var(--quiet); margin-top: 10px; }
+
+  details summary { cursor: pointer; font-size: 14px; font-weight: 500; letter-spacing: .16em; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: " ＋"; color: var(--quiet); }
+  details[open] summary::after { content: " －"; }
+  .code-hint { font-size: 12px; color: var(--quiet); margin: 10px 0; }
+  textarea {
+    width: 100%; height: 220px; resize: vertical; padding: 12px; border-radius: 10px;
+    background: #17181a; color: #d7d9dc; border: 1px solid var(--line);
+    font: 12px/1.6 "JetBrains Mono", Consolas, monospace;
+  }
+  .run-btn {
+    margin-top: 10px; padding: 8px 18px; border-radius: 999px; border: 1px solid #7d8188;
+    background: transparent; color: var(--ink); font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .run-btn:hover { border-color: var(--silver-flat); }
+
+  footer { margin-top: 36px; font-size: 11.5px; color: var(--quiet); text-align: center; letter-spacing: .06em; }
+
+  @media (max-width: 860px) {
+    .modules { grid-template-columns: repeat(4, 1fr); }
+    .controls, .bottom { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .modules { grid-template-columns: repeat(2, 1fr); }
+    header { flex-direction: column; align-items: flex-start; }
+    .brand h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <small>Idol Style Music Lab</small>
+      <h1>偶像風格音樂實驗室</h1>
+    </div>
+    <div>
+      <button class="play-btn" id="playBtn"><span class="icon"></span><span id="playLabel">播放</span></button>
+      <div class="status" id="status">載入音色中…</div>
+    </div>
+  </header>
+
+  <div class="section-title">選擇風格模組</div>
+  <div class="modules" id="modules"></div>
+
+  <div class="section-title">調整聲音</div>
+  <div class="controls">
+    <div class="panel">
+      <h2>參數滑桿</h2>
+      <div class="slider-row">
+        <label for="tempo">速度</label>
+        <input type="range" id="tempo" min="-20" max="20" step="1" value="0">
+        <output id="tempoOut"></output>
+      </div>
+      <div class="slider-row">
+        <label for="energy">能量</label>
+        <input type="range" id="energy" min="0" max="1" step="0.01" value="0.6">
+        <output id="energyOut"></output>
+      </div>
+      <div class="slider-row">
+        <label for="bright">亮度</label>
+        <input type="range" id="bright" min="0" max="1" step="0.01" value="0.5">
+        <output id="brightOut"></output>
+      </div>
+      <div class="slider-row">
+        <label for="space">空間感</label>
+        <input type="range" id="space" min="0" max="1" step="0.01" value="0.3">
+        <output id="spaceOut"></output>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>音軌開關</h2>
+      <div class="tracks" id="tracks"></div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="panel info">
+      <h2 id="infoTitle">風格說明卡</h2>
+      <dl>
+        <dt>速度</dt><dd id="infoBpm"></dd>
+        <dt>鼓組</dt><dd id="infoDrums"></dd>
+        <dt>和弦</dt><dd id="infoChords"></dd>
+        <dt>音色</dt><dd id="infoSound"></dd>
+      </dl>
+      <p id="infoDesc"></p>
+      <div class="note" id="infoNote"></div>
+    </div>
+    <div class="panel">
+      <details id="codePanel">
+        <summary>程式碼面板</summary>
+        <div class="code-hint">這段 Strudel 程式碼會隨著你的操作即時改寫。也可以直接修改後按「執行」，體驗 live coding。</div>
+        <textarea id="code" spellcheck="false" wrap="off"></textarea>
+        <button class="run-btn" id="runBtn">執行修改後的程式碼</button>
+      </details>
+    </div>
+  </div>
+
+  <footer>本網頁為非官方課堂作業，音樂皆為依風格要素重新編寫的原創循環，與各歌手及經紀公司無關。</footer>
+</div>
+
+<script>
+/* ---------- 風格模組 ----------
+   每個模組只描述「風格要素」：速度、鼓組型態、和弦進行類型、音色。
+   旋律與節奏皆為原創，未轉錄任何原曲。BPM 除 TAEYEON 外為估計值，待確認。 */
+const MODULES = [
+  {
+    id: "82major", name: "82MAJOR", tag: "偶像嘻哈", color: "#8c5a5a", bpm: 105,
+    info: {
+      drums: "重大鼓、二四拍小鼓加拍手",
+      chords: "D 小調：Dm – B♭ – C – Dm",
+      sound: "808 貝斯、方波合成器 stab",
+      desc: "強烈節拍搭配抓耳的合成器短音，低音厚、停頓多，營造自信的氣場。",
+      note: "BPM 為估計值"
+    },
+    drums: (e) => [
+      `s("bd ~ ~ ~ ~ ~ bd ~ ~ bd ~ ~ ~ ~ ~ ~").gain(${(0.85 + e * 0.25).toFixed(2)})`,
+      `s("~ ~ ~ ~ [sd,cp] ~ ~ ~ ~ ~ ~ ~ [sd,cp] ~ ~ ~").gain(0.8)`,
+      `s("${e > 0.5 ? "hh*16" : "hh*8"}").gain(${(0.25 + e * 0.3).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<d2 bb1 c2 d2>").s("sine").decay(0.9).sustain(0.4).gain(0.9)`,
+    chords: (lpf) => `note("~ [d4,f4,a4] ~ ~ ~ [d4,f4,a4] ~ ~").s("square").decay(0.12).sustain(0).lpf(${lpf}).gain(0.35)`,
+    lead: (lpf) => `note("<[d5 ~ f5 d5 ~ a4 ~ c5] [d5 ~ f5 g5 ~ f5 ~ ~]>").s("sawtooth").decay(0.15).sustain(0.2).lpf(${lpf}).gain(0.3)`,
+    pad: (lpf) => `note("<[d3,a3,f4] [bb2,f3,d4] [c3,g3,e4] [d3,a3,f4]>").s("triangle").attack(0.4).release(0.8).lpf(${Math.round(lpf * 0.6)}).gain(0.22)`
+  },
+  {
+    id: "chungha", name: "CHUNG HA", tag: "電子舞曲流行", color: "#b88a9a", bpm: 120,
+    info: {
+      drums: "四拍大鼓加熱帶風打擊",
+      chords: "升 F 小調流行進行：F♯m – D – A – E",
+      sound: "明亮鋸齒波、跳八度貝斯",
+      desc: "電子舞曲的穩定大鼓配上輕快的熱帶打擊，整首不放慢，像一路往前衝；新歌 México 更帶入拉丁風格。",
+      note: "BPM 為估計值"
+    },
+    drums: (e) => [
+      `s("bd*4").gain(${(0.8 + e * 0.25).toFixed(2)})`,
+      `s("~ cp ~ cp").gain(0.7)`,
+      `s("${e > 0.5 ? "[~ hh]*4, hh*16" : "[~ hh]*4"}").gain(${(0.25 + e * 0.25).toFixed(2)})`,
+      `s("~ ~ ~ hh ~ ~ hh ~ ~ hh ~ ~ ~ ~ hh ~").speed(1.6).gain(${(0.15 + e * 0.25).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<[f#1 f#2]*4 [d1 d2]*4 [a1 a2]*4 [e1 e2]*4>").s("sawtooth").decay(0.12).sustain(0.3).lpf(600).gain(0.55)`,
+    chords: (lpf) => `note("<[f#3,a3,c#4] [d3,f#3,a3] [a3,c#4,e4] [e3,g#3,b3]>").struct("~ x ~ x ~ x ~ x").s("sawtooth").decay(0.1).sustain(0).lpf(${lpf}).gain(0.3)`,
+    lead: (lpf) => `note("[c#5 ~ e5 f#5] [~ e5 c#5 ~] [b4 ~ c#5 ~] [~ ~ a4 ~]").s("square").decay(0.1).sustain(0.3).lpf(${lpf}).gain(0.22)`,
+    pad: (lpf) => `note("<[f#3,c#4,a4] [d3,a3,f#4] [a3,e4,c#5] [e3,b3,g#4]>").s("sawtooth").attack(0.3).release(1).lpf(${Math.round(lpf * 0.4)}).gain(0.16)`
+  },
+  {
+    id: "taeyeon", name: "TAEYEON", tag: "抒情流行 × 雷鬼", color: "#8a9bae", bpm: 87,
+    info: {
+      drums: "雷鬼 one drop：大鼓與小鼓都落在第三拍",
+      chords: "升 F 大調：F♯ – C♯ – D♯m – B",
+      sound: "鋼琴感短音、弦樂 pad",
+      desc: "以雷鬼的反拍和弦撐起輕盈律動，上面鋪鋼琴與弦樂，殘響多、留白多，讓人聲有空間。",
+      note: "參考 Four Seasons：174 BPM（半速 87）、升 F 大調"
+    },
+    drums: (e) => [
+      `s("~ ~ [bd,sd] ~").gain(${(0.7 + e * 0.2).toFixed(2)})`,
+      `s("${e > 0.5 ? "hh*8" : "~ hh ~ hh ~ hh ~ hh"}").gain(${(0.18 + e * 0.2).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<[f#2 ~ ~ f#2] [c#2 ~ ~ c#2] [d#2 ~ ~ d#2] [b1 ~ ~ b1]>").s("triangle").decay(0.5).sustain(0.5).gain(0.8)`,
+    chords: (lpf) => `note("<[f#3,a#3,c#4] [c#3,f3,g#3] [d#3,f#3,a#3] [b2,d#3,f#3]>").struct("~ x ~ x ~ x ~ x").s("triangle").decay(0.18).sustain(0).lpf(${lpf}).gain(0.4)`,
+    lead: (lpf) => `note("<[a#4 ~ c#5 ~ a#4 g#4 f#4 ~] [g#4 ~ ~ f4 g#4 ~ ~ ~] [f#4 ~ a#4 ~ c#5 ~ d#5 ~] [c#5 ~ ~ ~ ~ ~ ~ ~]>").s("triangle").decay(0.4).sustain(0.2).lpf(${lpf}).gain(0.35)`,
+    pad: (lpf) => `note("<[f#3,c#4,a#4] [c#3,g#3,f4] [d#3,a#3,f#4] [b2,f#3,d#4]>").s("sawtooth").attack(0.8).release(1.5).lpf(${Math.round(lpf * 0.35)}).gain(0.18)`
+  },
+  {
+    id: "sunmi", name: "SUNMI", tag: "復古合成器流行", color: "#8e7fa3", bpm: 118,
+    info: {
+      drums: "穩定大鼓、大空間感的小鼓、突發的打擊點",
+      chords: "A 小調：Am – F – C – G",
+      sound: "復古鋸齒波琶音、合成器 riff",
+      desc: "戲劇性的合成器 riff 是主角，偶爾插進突發的打擊讓人出其不意，夜晚般的紫色氛圍。",
+      note: "BPM 為估計值"
+    },
+    drums: (e) => [
+      `s("bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~ bd ~ ~ ~").gain(${(0.8 + e * 0.2).toFixed(2)})`,
+      `s("~ sd").room(0.6).size(0.8).gain(0.7)`,
+      `s("${e > 0.5 ? "hh*16" : "hh*8"}").gain(${(0.2 + e * 0.25).toFixed(2)})`,
+      `s("<~ ~ ~ [~ ~ ~ ~ ~ ~ cp cp]>").gain(${(0.3 + e * 0.4).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<a1 f1 c2 g1>*8").s("sawtooth").decay(0.1).sustain(0.2).lpf(500).gain(0.5)`,
+    chords: (lpf) => `note("<[a3 a4 c4 e4]*2 [f3 f4 a3 c4]*2 [c4 c5 e4 g4]*2 [g3 g4 b3 d4]*2>").s("sawtooth").decay(0.12).sustain(0).lpf(${lpf}).gain(0.28)`,
+    lead: (lpf) => `note("<[e5 ~ ~ d5 ~ c5 ~ ~] [~ ~ a4 ~ c5 ~ d5 ~]>").s("square").decay(0.2).sustain(0.3).lpf(${lpf}).gain(0.22)`,
+    pad: (lpf) => `note("<[a3,e4,c5] [f3,c4,a4] [c4,g4,e5] [g3,d4,b4]>").s("triangle").attack(0.5).release(1.2).lpf(${Math.round(lpf * 0.5)}).gain(0.2)`
+  },
+  {
+    id: "changmo", name: "CHANGMO", tag: "旋律嘻哈 × Trap", color: "#6f7f75", bpm: 140,
+    info: {
+      drums: "trap 半速感：稀疏大鼓、第三拍小鼓、快速 hi-hat",
+      chords: "C 小調：Cm – A♭ – E♭ – G",
+      sound: "長尾 808、鋼琴琶音、鐘聲旋律",
+      desc: "半速的厚重低音配上密集的 hi-hat，上層是帶點抒情的鋼琴與鐘聲，張力與旋律感並存。",
+      note: "依聽感設定，BPM 為估計值"
+    },
+    drums: (e) => [
+      `s("bd ~ ~ ~ ~ ~ ~ ~ ~ ~ bd ~ ~ ~ ~ ~").gain(${(0.85 + e * 0.2).toFixed(2)})`,
+      `s("~ ~ ~ ~ ~ ~ ~ ~ [sd,cp] ~ ~ ~ ~ ~ ~ ~").gain(0.75)`,
+      `s("${e > 0.5 ? "[hh*4] [hh*4] [hh*4] [hh*8]" : "hh*8"}").gain(${(0.2 + e * 0.25).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<c2 ab1 eb2 g1>").s("sine").decay(1.4).sustain(0.5).gain(0.95)`,
+    chords: (lpf) => `note("<[c4 eb4 g4 c5 g4 eb4 c4 eb4] [ab3 c4 eb4 ab4 eb4 c4 ab3 c4] [eb4 g4 bb4 eb5 bb4 g4 eb4 g4] [g3 b3 d4 g4 d4 b3 g3 b3]>").s("triangle").decay(0.25).sustain(0).lpf(${lpf}).gain(0.3)`,
+    lead: (lpf) => `note("<[g5 ~ ~ ~ eb5 ~ ~ ~] [~ ~ c5 ~ ~ ~ ~ ~] [bb5 ~ ~ ~ g5 ~ ~ ~] [~ ~ d5 ~ ~ ~ ~ ~]>").s("sine").decay(0.6).sustain(0).gain(0.3)`,
+    pad: (lpf) => `note("<[c3,g3,eb4] [ab2,eb3,c4] [eb3,bb3,g4] [g2,d3,b3]>").s("sawtooth").attack(0.6).release(1.2).lpf(${Math.round(lpf * 0.3)}).gain(0.14)`
+  },
+  {
+    id: "ashisland", name: "ASH ISLAND", tag: "憂鬱旋律嘻哈", color: "#5e6673", bpm: 140,
+    info: {
+      drums: "半速感、偏稀疏的鼓",
+      chords: "E 小調：Em – C – G – D",
+      sound: "撥弦吉他感琶音、柔和 pad",
+      desc: "以吉他般的撥弦琶音帶出孤獨感，鼓刻意留空，讓情緒沉在低處。",
+      note: "依聽感設定，BPM 為估計值"
+    },
+    drums: (e) => [
+      `s("bd ~ ~ ~ ~ ~ ~ bd ~ ~ ~ ~ ~ ~ ~ ~").gain(${(0.75 + e * 0.2).toFixed(2)})`,
+      `s("~ ~ sd ~").gain(0.6)`,
+      `s("${e > 0.5 ? "hh*8" : "~ hh ~ hh"}").gain(${(0.15 + e * 0.2).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<e2 c2 g1 d2>").s("sine").decay(1.2).sustain(0.4).gain(0.85)`,
+    chords: (lpf) => `note("<[e3 b3 g4 b3 e4 b3 g4 b3] [c3 g3 e4 g3 c4 g3 e4 g3] [g2 d3 b3 d3 g3 d3 b3 d3] [d3 a3 f#4 a3 d4 a3 f#4 a3]>").s("sawtooth").decay(0.3).sustain(0).lpf(${Math.round(lpf * 0.7)}).gain(0.28)`,
+    lead: (lpf) => `note("<[b4 ~ ~ ~ ~ ~ a4 ~] [g4 ~ ~ ~ ~ ~ ~ ~] [d5 ~ ~ ~ b4 ~ ~ ~] [a4 ~ ~ ~ ~ ~ ~ ~]>").s("triangle").attack(0.05).decay(0.8).sustain(0.2).lpf(${lpf}).gain(0.3)`,
+    pad: (lpf) => `note("<[e3,b3,g4] [c3,g3,e4] [g2,d3,b3] [d3,a3,f#4]>").s("triangle").attack(1).release(2).lpf(${Math.round(lpf * 0.4)}).gain(0.2)`
+  },
+  {
+    id: "bi", name: "B.I", tag: "嘻哈 × 流行搖滾", color: "#a08c6a", bpm: 100,
+    info: {
+      drums: "粗獷的流行搖滾鼓，每四小節一段過門",
+      chords: "B 小調：Bm – G – D – A",
+      sound: "八分音符貝斯、合成器點綴、合唱感 pad",
+      desc: "以嘻哈為底、混入流行搖滾的彈跳節奏，上面灑上合成器與合唱般的人聲質地，逐步堆疊到高潮。",
+      note: "BPM 為估計值"
+    },
+    drums: (e) => [
+      `s("bd ~ ~ bd ~ ~ bd ~ ~ ~ bd ~ ~ ~ ~ ~").gain(${(0.85 + e * 0.2).toFixed(2)})`,
+      `s("~ sd ~ sd").gain(0.85)`,
+      `s("${e > 0.5 ? "hh*16" : "hh*8"}").gain(${(0.2 + e * 0.25).toFixed(2)})`,
+      `s("<~ ~ ~ [~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ sd sd sd sd]>").gain(${(0.3 + e * 0.5).toFixed(2)})`
+    ],
+    bass: (lpf) => `note("<b1 g1 d2 a1>*8").s("sawtooth").decay(0.15).sustain(0.4).lpf(700).gain(0.5)`,
+    chords: (lpf) => `note("<[b3,d4,f#4] [g3,b3,d4] [d4,f#4,a4] [a3,c#4,e4]>").struct("x ~ ~ x ~ ~ x ~").s("square").decay(0.2).sustain(0.1).lpf(${lpf}).gain(0.25)`,
+    lead: (lpf) => `note("<[f#5 ~ d5 ~ b4 ~ d5 ~] [g5 ~ d5 ~ b4 ~ ~ ~] [a5 ~ f#5 ~ d5 ~ f#5 ~] [e5 ~ c#5 ~ a4 ~ ~ ~]>").s("sine").decay(0.3).sustain(0).gain(0.28)`,
+    pad: (lpf) => `note("<[b2,f#3,b3,d4] [g2,d3,g3,b3] [d3,a3,d4,f#4] [a2,e3,a3,c#4]>").s("sawtooth").attack(0.5).release(1.2).lpf(${Math.round(lpf * 0.45)}).gain(0.16)`
+  }
+];
+
+const TRACKS = [
+  { key: "drums",  label: "鼓",   hint: "節奏骨架" },
+  { key: "bass",   label: "貝斯", hint: "低音根基" },
+  { key: "chords", label: "和弦", hint: "和聲與律動" },
+  { key: "lead",   label: "旋律", hint: "原創主旋律" },
+  { key: "pad",    label: "氛圍", hint: "背景鋪底" }
+];
+
+/* ---------- 狀態 ---------- */
+const state = {
+  module: MODULES[0],
+  tempo: 0, energy: 0.6, bright: 0.5, space: 0.3,
+  on: { drums: true, bass: true, chords: true, lead: true, pad: true },
+  playing: false, ready: false
+};
+
+/* ---------- 產生 Strudel 程式碼 ---------- */
+function buildCode() {
+  const m = state.module;
+  const bpm = m.bpm + state.tempo;
+  const lpf = Math.round(300 + Math.pow(state.bright, 2) * 7700);
+  const layers = [];
+  if (state.on.drums)  layers.push(...m.drums(state.energy));
+  if (state.on.bass)   layers.push(m.bass(lpf));
+  if (state.on.chords) layers.push(m.chords(lpf));
+  if (state.on.lead)   layers.push(m.lead(lpf));
+  if (state.on.pad)    layers.push(m.pad(lpf));
+  if (layers.length === 0) layers.push(`s("~")`);
+  return `// ${m.name} 風格靈感｜${bpm} BPM\n` +
+    `stack(\n  ${layers.join(",\n  ")}\n)\n` +
+    `  .cpm(${bpm} / 4)\n` +
+    `  .room(${state.space.toFixed(2)}).size(${(0.4 + state.space * 0.5).toFixed(2)})`;
+}
+
+/* ---------- 播放 ---------- */
+const statusEl = document.getElementById("status");
+function setStatus(text, isError = false) {
+  statusEl.textContent = text;
+  statusEl.classList.toggle("error", isError);
+}
+
+/* 依序嘗試多個 CDN 載入 Strudel，任一成功即可 */
+const STRUDEL_CDNS = [
+  "https://unpkg.com/@strudel/web@1.3.0",
+  "https://cdn.jsdelivr.net/npm/@strudel/web@1.3.0"
+];
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement("script");
+    el.src = src;
+    el.onload = resolve;
+    el.onerror = () => reject(new Error("無法載入 " + src));
+    document.head.appendChild(el);
+  });
+}
+async function loadStrudel() {
+  if (typeof initStrudel === "function") return;
+  for (const src of STRUDEL_CDNS) {
+    try { await loadScript(src); if (typeof initStrudel === "function") return; }
+    catch (err) { console.warn(err.message); }
+  }
+  throw new Error("STRUDEL_BLOCKED");
+}
+
+let loadError = "";
+const ready = (async () => {
+  try {
+    await loadStrudel();
+  } catch (err) {
+    loadError = "無法載入 Strudel 音樂套件。請下載檔案後用 Chrome 開啟（預覽視窗會擋外部程式），並確認網路沒有封鎖 unpkg.com";
+    setStatus(loadError, true);
+    return;
+  }
+  // 鼓組音色從 GitHub 載入；失敗時不影響合成器音色
+  let drumsOk = true;
+  await initStrudel({
+    prebake: async () => {
+      try { await samples("github:tidalcycles/dirt-samples"); }
+      catch (err) { drumsOk = false; console.warn("鼓組音色載入失敗", err); }
+    }
+  });
+  state.ready = true;
+  setStatus(drumsOk ? "準備好了，按下播放" : "鼓組音色載入失敗（GitHub 連不到），先以合成器音色播放", !drumsOk);
+})().catch((err) => {
+  console.error(err);
+  loadError = "初始化失敗：" + err.message;
+  setStatus(loadError, true);
+});
+
+async function play(code) {
+  try {
+    setStatus("載入中…");
+    await ready;
+    if (!state.ready) {
+      setStatus(loadError || "音色尚未載入，請重新整理", true);
+      return;
+    }
+    await evaluate(code);
+    setStatus(`播放中：${state.module.name} 風格靈感`);
+  } catch (err) {
+    console.error(err);
+    setStatus("程式碼有錯誤：" + err.message, true);
+  }
+}
+
+let timer = null;
+function refresh(immediate = false) {
+  const code = buildCode();
+  document.getElementById("code").value = code;
+  if (!state.playing) return;
+  clearTimeout(timer);
+  timer = setTimeout(() => play(code), immediate ? 0 : 120);
+}
+
+const playBtn = document.getElementById("playBtn");
+playBtn.addEventListener("click", () => {
+  state.playing = !state.playing;
+  playBtn.classList.toggle("playing", state.playing);
+  document.getElementById("playLabel").textContent = state.playing ? "停止" : "播放";
+  if (state.playing) {
+    refresh(true);
+  } else {
+    if (state.ready) hush();
+    setStatus("已停止");
+  }
+});
+
+document.getElementById("runBtn").addEventListener("click", () => {
+  if (!state.playing) {
+    state.playing = true;
+    playBtn.classList.add("playing");
+    document.getElementById("playLabel").textContent = "停止";
+  }
+  play(document.getElementById("code").value);
+});
+
+/* ---------- 介面 ---------- */
+function renderModules() {
+  const box = document.getElementById("modules");
+  box.innerHTML = "";
+  MODULES.forEach((m) => {
+    const b = document.createElement("button");
+    b.className = "card" + (m === state.module ? " active" : "");
+    b.style.setProperty("--card-color", m.color);
+    b.innerHTML = `<div class="swatch" style="background:${m.color}"></div>
+      <div class="name">${m.name}</div><div class="tag">${m.tag}</div>`;
+    b.addEventListener("click", () => selectModule(m));
+    box.appendChild(b);
+  });
+}
+
+function renderInfo() {
+  const m = state.module;
+  document.getElementById("infoTitle").textContent = `${m.name} 風格靈感`;
+  document.getElementById("infoBpm").textContent = `${m.bpm + state.tempo} BPM（基準 ${m.bpm}）`;
+  document.getElementById("infoDrums").textContent = m.info.drums;
+  document.getElementById("infoChords").textContent = m.info.chords;
+  document.getElementById("infoSound").textContent = m.info.sound;
+  document.getElementById("infoDesc").textContent = m.info.desc;
+  document.getElementById("infoNote").textContent = m.info.note;
+}
+
+function selectModule(m) {
+  state.module = m;
+  state.tempo = 0;
+  document.getElementById("tempo").value = 0;
+  document.documentElement.style.setProperty("--accent", m.color);
+  renderModules();
+  renderOutputs();
+  renderInfo();
+  refresh(true);
+}
+
+function renderTracks() {
+  const box = document.getElementById("tracks");
+  TRACKS.forEach((t) => {
+    const l = document.createElement("label");
+    l.className = "toggle";
+    l.innerHTML = `<input type="checkbox" ${state.on[t.key] ? "checked" : ""}><span class="switch"></span>
+      <span>${t.label}<span class="hint">${t.hint}</span></span>`;
+    l.querySelector("input").addEventListener("change", (e) => {
+      state.on[t.key] = e.target.checked;
+      refresh(true);
+    });
+    box.appendChild(l);
+  });
+}
+
+function renderOutputs() {
+  const pct = (v) => Math.round(v * 100) + "%";
+  document.getElementById("tempoOut").textContent = `${state.module.bpm + state.tempo}`;
+  document.getElementById("energyOut").textContent = pct(state.energy);
+  document.getElementById("brightOut").textContent = pct(state.bright);
+  document.getElementById("spaceOut").textContent = pct(state.space);
+}
+
+[["tempo", "tempo", parseInt], ["energy", "energy", parseFloat], ["bright", "bright", parseFloat], ["space", "space", parseFloat]]
+  .forEach(([id, key, parse]) => {
+    document.getElementById(id).addEventListener("input", (e) => {
+      state[key] = parse(e.target.value);
+      renderOutputs();
+      if (key === "tempo") renderInfo();
+      refresh();
+    });
+  });
+
+renderModules();
+renderTracks();
+renderOutputs();
+renderInfo();
+refresh();
+</script>
+</body>
+</html>

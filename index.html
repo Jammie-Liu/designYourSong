@@ -198,12 +198,18 @@
   .cmp-hint { font-size: 12.5px; line-height: 1.7; color: var(--quiet); margin: 14px 0; }
   .songs { list-style: none; margin: 0 0 14px; padding: 0; border-top: 1px solid var(--line); }
   .song { border-bottom: 1px solid var(--line); }
-  .song > a, .song.main { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 2px; }
-  .song a { color: inherit; text-decoration: none; }
-  .song a:hover .song-meta { color: var(--ink); }
-  .song-name { font-size: 14px; }
-  .song.main .song-name { font-weight: 500; }
+  .song button {
+    width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    padding: 11px 8px; margin: 2px 0; border: 0; border-radius: 8px; background: transparent;
+    color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: background .2s;
+  }
+  .song button:hover { background: rgba(255,255,255,.04); }
+  .song.current button { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+  .song-name { font-size: 14px; display: flex; align-items: baseline; gap: 10px; }
+  .song-no { font-size: 11px; color: var(--quiet); font-variant-numeric: tabular-nums; }
+  .song.current .song-name { font-weight: 500; }
   .song-meta { font-size: 11.5px; color: var(--quiet); white-space: nowrap; }
+  .song.current .song-meta { color: var(--ink); }
 
   footer { margin-top: 36px; font-size: 11.5px; color: var(--quiet); text-align: center; letter-spacing: .06em; }
 
@@ -280,7 +286,7 @@
         <button id="abGen"><b>A</b>生成版本</button>
         <button id="abOrig"><b>B</b>原曲</button>
       </div>
-      <p class="cmp-hint">兩邊來回切換，播放其中一邊時另一邊會自動暫停。對照下方說明卡，聽聽速度、鼓的型態和音色哪裡像、哪裡不像。</p>
+      <p class="cmp-hint">點選下方歌曲切換原曲，再用 A／B 來回比較，播放其中一邊時另一邊會自動暫停。對照說明卡，聽聽速度、鼓的型態和音色哪裡像、哪裡不像。</p>
       <ul class="songs" id="cmpSongs"></ul>
       <a class="cmp-open" id="cmpOpen" target="_blank" rel="noopener">在 YouTube 開啟 ↗</a>
     </div>
@@ -321,7 +327,11 @@
 const MODULES = [
   {
     id: "82major", photo: "asset/82 major.jpg", focus: "50% 60%", name: "82MAJOR", tag: "偶像嘻哈", color: "#8c5a5a", bpm: 105,
-    songs: { mv: { id: "L7HhTKJx0gU", title: "Like Fire", label: "官方 MV" }, refs: ["Choke", "Trophy"] },
+    songs: [
+      { id: "L7HhTKJx0gU", title: "Like Fire", label: "官方 MV" },
+      { id: "OMEcEBYe3jw", title: "Choke（촉）", label: "官方 MV" },
+      { id: "lROE6G2DwFY", title: "TROPHY（트로피）", label: "官方 MV" }
+    ],
     info: {
       drums: "重大鼓、二四拍小鼓加拍手",
       chords: "D 小調：Dm – B♭ – C – Dm",
@@ -341,7 +351,11 @@ const MODULES = [
   },
   {
     id: "chungha", photo: "asset/chungha.jpg", focus: "50% 40%", name: "CHUNG HA", tag: "電子舞曲流行", color: "#b88a9a", bpm: 120,
-    songs: { mv: { id: "jFWiME1uVrY", title: "Roller Coaster", label: "官方 MV" }, refs: ["Play", "México"] },
+    songs: [
+      { id: "jFWiME1uVrY", title: "Roller Coaster", label: "官方 MV" },
+      { id: "UsvoDgmfUwc", title: "PLAY (feat. CHANGMO)", label: "官方 MV" },
+      { id: "tR_wJWuCXvY", title: "México", label: "音樂節目舞台" }
+    ],
     info: {
       drums: "四拍大鼓加熱帶風打擊",
       chords: "升 F 小調流行進行：F♯m – D – A – E",
@@ -362,7 +376,11 @@ const MODULES = [
   },
   {
     id: "taeyeon", photo: "asset/taeyeon.jpg", focus: "50% 30%", name: "TAEYEON", tag: "抒情流行 × 雷鬼", color: "#8a9bae", bpm: 87,
-    songs: { mv: { id: "4HG_CJzyX6A", title: "Four Seasons（사계）", label: "官方 MV" }, refs: ["I", "Why"] },
+    songs: [
+      { id: "4HG_CJzyX6A", title: "Four Seasons（사계）", label: "官方 MV" },
+      { id: "4OrCA1OInoo", title: "I (feat. Verbal Jint)", label: "官方 MV" },
+      { id: "WkdtmT8A2iY", title: "Why", label: "官方 MV" }
+    ],
     info: {
       drums: "雷鬼 one drop：大鼓與小鼓都落在第三拍",
       chords: "升 F 大調：F♯ – C♯ – D♯m – B",
@@ -381,7 +399,11 @@ const MODULES = [
   },
   {
     id: "sunmi", photo: "asset/sunmi.jpg", focus: "50% 25%", name: "SUNMI", tag: "復古合成器流行", color: "#8e7fa3", bpm: 118,
-    songs: { mv: { id: "H8YW1tlsmE8", title: "pporappippam（보라빛 밤）", label: "官方 MV" }, refs: ["Heroine", "You Can't Sit With Us"] },
+    songs: [
+      { id: "H8YW1tlsmE8", title: "pporappippam（보라빛 밤）", label: "官方 MV" },
+      { id: "F4qfN5UeFvQ", title: "Heroine（주인공）", label: "官方 MV" },
+      { id: "0izg-ezAd-c", title: "You can't sit with us", label: "官方表演影片" }
+    ],
     info: {
       drums: "穩定大鼓、大空間感的小鼓、突發的打擊點",
       chords: "A 小調：Am – F – C – G",
@@ -402,7 +424,11 @@ const MODULES = [
   },
   {
     id: "changmo", photo: "asset/changmo.jpg", focus: "50% 25%", name: "CHANGMO", tag: "旋律嘻哈 × Trap", color: "#6f7f75", bpm: 140,
-    songs: { mv: { id: "lOrU0MH0bMk", title: "METEOR", label: "官方 MV" }, refs: ["Maestro", "Hyperstar"] },
+    songs: [
+      { id: "lOrU0MH0bMk", title: "METEOR", label: "官方 MV" },
+      { id: "wMkdmElFLUw", title: "Maestro（마에스트로）", label: "官方 MV" },
+      { id: "bL4KyoQWspM", title: "Hyperstar", label: "音源" }
+    ],
     info: {
       drums: "trap 半速感：稀疏大鼓、第三拍小鼓、快速 hi-hat",
       chords: "C 小調：Cm – A♭ – E♭ – G",
@@ -422,7 +448,11 @@ const MODULES = [
   },
   {
     id: "ashisland", photo: "asset/ash island.jpg", focus: "50% 30%", name: "ASH ISLAND", tag: "憂鬱旋律嘻哈", color: "#5e6673", bpm: 140,
-    songs: { mv: { id: "ujWsKOGpSYQ", title: "Paranoid", label: "官方 MV" }, refs: ["Lonely", "Nightmare"] },
+    songs: [
+      { id: "ujWsKOGpSYQ", title: "Paranoid", label: "官方 MV" },
+      { id: "R5f-IpCkU4o", title: "Lonely", label: "音源" },
+      { id: "Q0sZX07H2Ew", title: "Nightmare（악몽）", label: "音源" }
+    ],
     info: {
       drums: "半速感、偏稀疏的鼓",
       chords: "E 小調：Em – C – G – D",
@@ -442,7 +472,11 @@ const MODULES = [
   },
   {
     id: "bi", photo: "asset/BI.jpg", focus: "50% 35%", name: "B.I", tag: "嘻哈 × 流行搖滾", color: "#a08c6a", bpm: 100,
-    songs: { mv: { id: "r9h4gRZAGv8", title: "COSMOS", label: "官方 MV" }, refs: ["Waterfall", "Keep Me Up"] },
+    songs: [
+      { id: "r9h4gRZAGv8", title: "COSMOS", label: "官方 MV" },
+      { id: "KSODnk88Pwo", title: "WATERFALL", label: "官方 MV（表演版）" },
+      { id: "ghc2ygfOSpA", title: "Keep me up", label: "官方 MV" }
+    ],
     info: {
       drums: "粗獷的流行搖滾鼓，每四小節一段過門",
       chords: "B 小調：Bm – G – D – A",
@@ -635,41 +669,55 @@ function loadYouTubeApi() {
 }
 
 function youtubeWatchUrl(id) { return `https://www.youtube.com/watch?v=${id}`; }
-function youtubeSearchUrl(q) { return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`; }
+let songIdx = 0;          // 目前選取的原曲（每位歌手 3 首）
+function currentSong() { return state.module.songs[songIdx]; }
 
+/* 換歌手時呼叫：回到第一首 */
 function renderCompare() {
-  const m = state.module;
-  const mv = m.songs.mv;
+  songIdx = 0;
+  document.getElementById("cmpTitle").textContent = `${state.module.name} 原曲`;
+  renderStage();
+}
+
+/* 播放器區：顯示目前歌曲的封面，點擊才載入 YouTube */
+function renderStage() {
+  const mv = currentSong();
   destroyOriginal();
-  document.getElementById("cmpTitle").textContent = `${m.name} 原曲`;
-  const stage = document.getElementById("cmpStage");
-  stage.innerHTML = `
+  document.getElementById("cmpStage").innerHTML = `
     <button class="yt-cover" id="ytCover" aria-label="播放 ${mv.title}">
       <img src="https://i.ytimg.com/vi/${mv.id}/hqdefault.jpg" alt="">
       <span class="yt-play"></span>
-      <span class="yt-caption">${mv.title}<small>點擊播放官方影片</small></span>
+      <span class="yt-caption">${mv.title}<small>${mv.label} · 點擊播放</small></span>
     </button>`;
   document.getElementById("ytCover").addEventListener("click", () => playOriginal());
-
-  const list = document.getElementById("cmpSongs");
-  list.innerHTML = `
-    <li class="song main">
-      <span class="song-name">${mv.title}</span>
-      <span class="song-meta">${mv.label} · 可在本頁播放</span>
-    </li>` +
-    m.songs.refs.map((t) => `
-    <li class="song">
-      <a href="${youtubeSearchUrl(m.name + " " + t)}" target="_blank" rel="noopener">
-        <span class="song-name">${t}</span>
-        <span class="song-meta">在 YouTube 搜尋 ↗</span>
-      </a>
-    </li>`).join("");
   document.getElementById("cmpOpen").href = youtubeWatchUrl(mv.id);
+  renderSongList();
   updateAB();
 }
 
+function renderSongList() {
+  const list = document.getElementById("cmpSongs");
+  list.innerHTML = state.module.songs.map((s, i) => `
+    <li class="song${i === songIdx ? " current" : ""}">
+      <button data-i="${i}" aria-pressed="${i === songIdx}">
+        <span class="song-name"><span class="song-no">${i + 1}</span>${s.title}</span>
+        <span class="song-meta">${i === songIdx && ytPlaying ? "播放中" : s.label}</span>
+      </button>
+    </li>`).join("");
+  list.querySelectorAll("button").forEach((b) =>
+    b.addEventListener("click", () => selectSong(Number(b.dataset.i))));
+}
+
+/* 點清單中的歌：切換並直接播放 */
+function selectSong(i) {
+  if (i === songIdx && ytPlayer) { playOriginal(); return; }
+  songIdx = i;
+  renderStage();
+  playOriginal();
+}
+
 function showOriginalError(msg) {
-  const mv = state.module.songs.mv;
+  const mv = currentSong();
   ytPlaying = false;
   document.getElementById("cmpStage").innerHTML = `
     <div class="yt-error">
@@ -683,12 +731,12 @@ async function playOriginal() {
   if (state.playing) setPlaying(false, "原曲播放中，生成音樂已暫停");
   if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); return; }
 
-  const mv = state.module.songs.mv;
+  const mv = currentSong();
   const stage = document.getElementById("cmpStage");
   stage.innerHTML = `<div id="ytFrame"></div>`;
   try {
     await loadYouTubeApi();
-    if (mv !== state.module.songs.mv) return;   // 等待時已切換歌手
+    if (mv !== currentSong()) return;   // 等待時已切換歌手或歌曲
     ytPlayer = new YT.Player("ytFrame", {
       host: "https://www.youtube-nocookie.com",
       videoId: mv.id,
@@ -698,6 +746,7 @@ async function playOriginal() {
           ytPlaying = e.data === YT.PlayerState.PLAYING;
           if (ytPlaying && state.playing) setPlaying(false, "原曲播放中，生成音樂已暫停");
           updateAB();
+          renderSongList();
         },
         onError: (e) => showOriginalError(YT_ERRORS[e.data] || "影片無法播放")
       }
@@ -710,12 +759,13 @@ async function playOriginal() {
       referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
     ytPlaying = true;
     updateAB();
+    renderSongList();
   }
 }
 
 function pauseOriginal() {
   if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
-  else if (ytPlaying) renderCompare();   // 一般嵌入無法控制，只能收起
+  else if (ytPlaying) renderStage();     // 一般嵌入無法控制，只能收起
   ytPlaying = false;
 }
 

@@ -63,7 +63,23 @@
     font: inherit; cursor: pointer; transition: border-color .2s, transform .2s;
   }
   .card:hover { transform: translateY(-2px); }
-  .card .swatch { width: 22px; height: 22px; border-radius: 50%; margin-bottom: 14px; box-shadow: 0 0 0 2px #2e3035, 0 0 0 3px #8f949b; }
+  .card { padding: 8px 8px 14px; overflow: hidden; }
+  .card .photo {
+    position: relative; aspect-ratio: 4 / 5; border-radius: 9px; overflow: hidden;
+    margin-bottom: 12px; background: #2e3035;
+  }
+  .card .photo img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: grayscale(.55) contrast(.95) brightness(.85);
+    transition: filter .4s, transform .4s;
+  }
+  .card:hover .photo img { filter: grayscale(.25) brightness(.95); transform: scale(1.03); }
+  .card.active .photo img { filter: none; }
+  .card .swatch {
+    position: absolute; left: 8px; bottom: 8px; width: 14px; height: 14px; border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(28,29,32,.6), 0 0 0 3px #c9ccd1;
+  }
+  .card .name, .card .tag { padding: 0 6px; }
   .card .name { font-size: 15px; font-weight: 500; letter-spacing: .04em; }
   .card .tag { font-size: 11.5px; color: var(--quiet); margin-top: 4px; }
   .card.active { border-color: var(--silver-flat); background: color-mix(in srgb, var(--card-color) 22%, var(--panel)); }
@@ -105,6 +121,12 @@
 
   /* info + code */
   .bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .info-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .info-head h2 { margin: 0; }
+  .info-head img {
+    width: 56px; height: 56px; border-radius: 50%; object-fit: cover;
+    box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px #c9ccd1;
+  }
   .info dl { margin: 0; display: grid; grid-template-columns: 76px 1fr; gap: 8px 12px; font-size: 13.5px; }
   .info dt { color: var(--quiet); }
   .info dd { margin: 0; }
@@ -134,7 +156,13 @@
     .controls, .bottom { grid-template-columns: 1fr; }
   }
   @media (max-width: 480px) {
-    .modules { grid-template-columns: repeat(2, 1fr); }
+    .modules {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 20px;
+      margin: 0 -20px; padding: 0 20px 6px; scrollbar-width: none;
+    }
+    .modules::-webkit-scrollbar { display: none; }
+    .card { flex: 0 0 38%; scroll-snap-align: start; }
+    .card:hover { transform: none; }
     header { flex-direction: column; align-items: flex-start; }
     .brand h1 { font-size: 22px; }
   }
@@ -189,7 +217,10 @@
 
   <div class="bottom">
     <div class="panel info">
-      <h2 id="infoTitle">風格說明卡</h2>
+      <div class="info-head">
+        <img id="infoPhoto" alt="">
+        <h2 id="infoTitle">風格說明卡</h2>
+      </div>
       <dl>
         <dt>速度</dt><dd id="infoBpm"></dd>
         <dt>鼓組</dt><dd id="infoDrums"></dd>
@@ -209,7 +240,7 @@
     </div>
   </div>
 
-  <footer>本網頁為非官方課堂作業，音樂皆為依風格要素重新編寫的原創循環，與各歌手及經紀公司無關。</footer>
+  <footer>本網頁為非官方課堂作業，音樂皆為依風格要素重新編寫的原創循環，與各歌手及經紀公司無關。照片版權屬原權利人。</footer>
 </div>
 
 <script>
@@ -218,7 +249,7 @@
    旋律與節奏皆為原創，未轉錄任何原曲。BPM 除 TAEYEON 外為估計值，待確認。 */
 const MODULES = [
   {
-    id: "82major", name: "82MAJOR", tag: "偶像嘻哈", color: "#8c5a5a", bpm: 105,
+    id: "82major", photo: "asset/82 major.jpg", focus: "50% 60%", name: "82MAJOR", tag: "偶像嘻哈", color: "#8c5a5a", bpm: 105,
     info: {
       drums: "重大鼓、二四拍小鼓加拍手",
       chords: "D 小調：Dm – B♭ – C – Dm",
@@ -237,7 +268,7 @@ const MODULES = [
     pad: (lpf) => `note("<[d3,a3,f4] [bb2,f3,d4] [c3,g3,e4] [d3,a3,f4]>").s("triangle").attack(0.4).release(0.8).lpf(${Math.round(lpf * 0.6)}).gain(0.22)`
   },
   {
-    id: "chungha", name: "CHUNG HA", tag: "電子舞曲流行", color: "#b88a9a", bpm: 120,
+    id: "chungha", photo: "asset/chungha.jpg", focus: "50% 40%", name: "CHUNG HA", tag: "電子舞曲流行", color: "#b88a9a", bpm: 120,
     info: {
       drums: "四拍大鼓加熱帶風打擊",
       chords: "升 F 小調流行進行：F♯m – D – A – E",
@@ -257,7 +288,7 @@ const MODULES = [
     pad: (lpf) => `note("<[f#3,c#4,a4] [d3,a3,f#4] [a3,e4,c#5] [e3,b3,g#4]>").s("sawtooth").attack(0.3).release(1).lpf(${Math.round(lpf * 0.4)}).gain(0.16)`
   },
   {
-    id: "taeyeon", name: "TAEYEON", tag: "抒情流行 × 雷鬼", color: "#8a9bae", bpm: 87,
+    id: "taeyeon", photo: "asset/taeyeon.jpg", focus: "50% 30%", name: "TAEYEON", tag: "抒情流行 × 雷鬼", color: "#8a9bae", bpm: 87,
     info: {
       drums: "雷鬼 one drop：大鼓與小鼓都落在第三拍",
       chords: "升 F 大調：F♯ – C♯ – D♯m – B",
@@ -275,7 +306,7 @@ const MODULES = [
     pad: (lpf) => `note("<[f#3,c#4,a#4] [c#3,g#3,f4] [d#3,a#3,f#4] [b2,f#3,d#4]>").s("sawtooth").attack(0.8).release(1.5).lpf(${Math.round(lpf * 0.35)}).gain(0.18)`
   },
   {
-    id: "sunmi", name: "SUNMI", tag: "復古合成器流行", color: "#8e7fa3", bpm: 118,
+    id: "sunmi", photo: "asset/sunmi.jpg", focus: "50% 25%", name: "SUNMI", tag: "復古合成器流行", color: "#8e7fa3", bpm: 118,
     info: {
       drums: "穩定大鼓、大空間感的小鼓、突發的打擊點",
       chords: "A 小調：Am – F – C – G",
@@ -295,7 +326,7 @@ const MODULES = [
     pad: (lpf) => `note("<[a3,e4,c5] [f3,c4,a4] [c4,g4,e5] [g3,d4,b4]>").s("triangle").attack(0.5).release(1.2).lpf(${Math.round(lpf * 0.5)}).gain(0.2)`
   },
   {
-    id: "changmo", name: "CHANGMO", tag: "旋律嘻哈 × Trap", color: "#6f7f75", bpm: 140,
+    id: "changmo", photo: "asset/changmo.jpg", focus: "50% 25%", name: "CHANGMO", tag: "旋律嘻哈 × Trap", color: "#6f7f75", bpm: 140,
     info: {
       drums: "trap 半速感：稀疏大鼓、第三拍小鼓、快速 hi-hat",
       chords: "C 小調：Cm – A♭ – E♭ – G",
@@ -314,7 +345,7 @@ const MODULES = [
     pad: (lpf) => `note("<[c3,g3,eb4] [ab2,eb3,c4] [eb3,bb3,g4] [g2,d3,b3]>").s("sawtooth").attack(0.6).release(1.2).lpf(${Math.round(lpf * 0.3)}).gain(0.14)`
   },
   {
-    id: "ashisland", name: "ASH ISLAND", tag: "憂鬱旋律嘻哈", color: "#5e6673", bpm: 140,
+    id: "ashisland", photo: "asset/ash island.jpg", focus: "50% 30%", name: "ASH ISLAND", tag: "憂鬱旋律嘻哈", color: "#5e6673", bpm: 140,
     info: {
       drums: "半速感、偏稀疏的鼓",
       chords: "E 小調：Em – C – G – D",
@@ -333,7 +364,7 @@ const MODULES = [
     pad: (lpf) => `note("<[e3,b3,g4] [c3,g3,e4] [g2,d3,b3] [d3,a3,f#4]>").s("triangle").attack(1).release(2).lpf(${Math.round(lpf * 0.4)}).gain(0.2)`
   },
   {
-    id: "bi", name: "B.I", tag: "嘻哈 × 流行搖滾", color: "#a08c6a", bpm: 100,
+    id: "bi", photo: "asset/BI.jpg", focus: "50% 35%", name: "B.I", tag: "嘻哈 × 流行搖滾", color: "#a08c6a", bpm: 100,
     info: {
       drums: "粗獷的流行搖滾鼓，每四小節一段過門",
       chords: "B 小調：Bm – G – D – A",
@@ -498,7 +529,10 @@ function renderModules() {
     const b = document.createElement("button");
     b.className = "card" + (m === state.module ? " active" : "");
     b.style.setProperty("--card-color", m.color);
-    b.innerHTML = `<div class="swatch" style="background:${m.color}"></div>
+    b.innerHTML = `<div class="photo">
+        <img src="${encodeURI(m.photo)}" alt="${m.name}" loading="lazy" style="object-position:${m.focus}">
+        <span class="swatch" style="background:${m.color}"></span>
+      </div>
       <div class="name">${m.name}</div><div class="tag">${m.tag}</div>`;
     b.addEventListener("click", () => selectModule(m));
     box.appendChild(b);
@@ -508,6 +542,10 @@ function renderModules() {
 function renderInfo() {
   const m = state.module;
   document.getElementById("infoTitle").textContent = `${m.name} 風格靈感`;
+  const photo = document.getElementById("infoPhoto");
+  photo.src = encodeURI(m.photo);
+  photo.alt = m.name;
+  photo.style.objectPosition = m.focus;
   document.getElementById("infoBpm").textContent = `${m.bpm + state.tempo} BPM（基準 ${m.bpm}）`;
   document.getElementById("infoDrums").textContent = m.info.drums;
   document.getElementById("infoChords").textContent = m.info.chords;

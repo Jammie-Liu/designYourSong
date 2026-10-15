@@ -149,11 +149,67 @@
   }
   .run-btn:hover { border-color: var(--silver-flat); }
 
+  /* 對照原曲 */
+  .compare { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+  .cmp-stage {
+    position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;
+    background: #17181a; border: 1px solid var(--line);
+  }
+  .cmp-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .yt-cover {
+    position: absolute; inset: 0; width: 100%; padding: 0; border: 0; cursor: pointer;
+    background: #17181a; color: var(--ink); font: inherit;
+  }
+  .yt-cover img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: grayscale(.4) brightness(.6); transition: filter .3s;
+  }
+  .yt-cover:hover img { filter: grayscale(.1) brightness(.75); }
+  .yt-play {
+    position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px;
+    border-radius: 50%; background: var(--silver); box-shadow: 0 4px 18px rgba(0,0,0,.5);
+  }
+  .yt-play::after {
+    content: ""; position: absolute; left: 26px; top: 20px;
+    border-left: 18px solid #1c1d20; border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+  }
+  .yt-caption {
+    position: absolute; left: 16px; bottom: 14px; text-align: left;
+    font-size: 15px; font-weight: 500; letter-spacing: .04em; text-shadow: 0 1px 6px rgba(0,0,0,.7);
+  }
+  .yt-caption small { display: block; font-size: 11.5px; font-weight: 300; color: #c9ccd1; margin-top: 2px; }
+  .yt-error {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; padding: 20px; text-align: center; font-size: 14px;
+  }
+  .yt-error p { margin: 0; color: #d39a8f; }
+  .yt-error a, .cmp-open { color: var(--ink); font-size: 13px; }
+  .cmp-side h2 { margin-bottom: 14px; }
+  .ab {
+    display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px;
+    background: #17181a; border: 1px solid var(--line);
+  }
+  .ab button {
+    padding: 9px 0; border: 0; border-radius: 999px; background: transparent; color: var(--quiet);
+    font: inherit; font-size: 13.5px; cursor: pointer; transition: background .2s, color .2s;
+  }
+  .ab button b { font-weight: 500; margin-right: 6px; letter-spacing: .1em; }
+  .ab button.on { background: var(--silver); color: #1c1d20; }
+  .cmp-hint { font-size: 12.5px; line-height: 1.7; color: var(--quiet); margin: 14px 0; }
+  .songs { list-style: none; margin: 0 0 14px; padding: 0; border-top: 1px solid var(--line); }
+  .song { border-bottom: 1px solid var(--line); }
+  .song > a, .song.main { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 2px; }
+  .song a { color: inherit; text-decoration: none; }
+  .song a:hover .song-meta { color: var(--ink); }
+  .song-name { font-size: 14px; }
+  .song.main .song-name { font-weight: 500; }
+  .song-meta { font-size: 11.5px; color: var(--quiet); white-space: nowrap; }
+
   footer { margin-top: 36px; font-size: 11.5px; color: var(--quiet); text-align: center; letter-spacing: .06em; }
 
   @media (max-width: 860px) {
     .modules { grid-template-columns: repeat(4, 1fr); }
-    .controls, .bottom { grid-template-columns: 1fr; }
+    .controls, .bottom, .compare { grid-template-columns: 1fr; }
   }
   @media (max-width: 480px) {
     .modules {
@@ -215,6 +271,21 @@
     </div>
   </div>
 
+  <div class="section-title">對照原曲 · 聽聽看像不像</div>
+  <div class="panel compare">
+    <div class="cmp-stage" id="cmpStage"></div>
+    <div class="cmp-side">
+      <h2 id="cmpTitle">原曲</h2>
+      <div class="ab" role="group" aria-label="切換試聽">
+        <button id="abGen"><b>A</b>生成版本</button>
+        <button id="abOrig"><b>B</b>原曲</button>
+      </div>
+      <p class="cmp-hint">兩邊來回切換，播放其中一邊時另一邊會自動暫停。對照下方說明卡，聽聽速度、鼓的型態和音色哪裡像、哪裡不像。</p>
+      <ul class="songs" id="cmpSongs"></ul>
+      <a class="cmp-open" id="cmpOpen" target="_blank" rel="noopener">在 YouTube 開啟 ↗</a>
+    </div>
+  </div>
+
   <div class="bottom">
     <div class="panel info">
       <div class="info-head">
@@ -240,7 +311,7 @@
     </div>
   </div>
 
-  <footer>本網頁為非官方課堂作業，音樂皆為依風格要素重新編寫的原創循環，與各歌手及經紀公司無關。照片版權屬原權利人。</footer>
+  <footer>本網頁為非官方課堂作業，音樂皆為依風格要素重新編寫的原創循環，與各歌手及經紀公司無關。照片版權屬原權利人；原曲影片皆由 YouTube 官方頻道嵌入播放。</footer>
 </div>
 
 <script>
@@ -250,6 +321,7 @@
 const MODULES = [
   {
     id: "82major", photo: "asset/82 major.jpg", focus: "50% 60%", name: "82MAJOR", tag: "偶像嘻哈", color: "#8c5a5a", bpm: 105,
+    songs: { mv: { id: "L7HhTKJx0gU", title: "Like Fire", label: "官方 MV" }, refs: ["Choke", "Trophy"] },
     info: {
       drums: "重大鼓、二四拍小鼓加拍手",
       chords: "D 小調：Dm – B♭ – C – Dm",
@@ -269,6 +341,7 @@ const MODULES = [
   },
   {
     id: "chungha", photo: "asset/chungha.jpg", focus: "50% 40%", name: "CHUNG HA", tag: "電子舞曲流行", color: "#b88a9a", bpm: 120,
+    songs: { mv: { id: "jFWiME1uVrY", title: "Roller Coaster", label: "官方 MV" }, refs: ["Play", "México"] },
     info: {
       drums: "四拍大鼓加熱帶風打擊",
       chords: "升 F 小調流行進行：F♯m – D – A – E",
@@ -289,6 +362,7 @@ const MODULES = [
   },
   {
     id: "taeyeon", photo: "asset/taeyeon.jpg", focus: "50% 30%", name: "TAEYEON", tag: "抒情流行 × 雷鬼", color: "#8a9bae", bpm: 87,
+    songs: { mv: { id: "4HG_CJzyX6A", title: "Four Seasons（사계）", label: "官方 MV" }, refs: ["I", "Why"] },
     info: {
       drums: "雷鬼 one drop：大鼓與小鼓都落在第三拍",
       chords: "升 F 大調：F♯ – C♯ – D♯m – B",
@@ -307,6 +381,7 @@ const MODULES = [
   },
   {
     id: "sunmi", photo: "asset/sunmi.jpg", focus: "50% 25%", name: "SUNMI", tag: "復古合成器流行", color: "#8e7fa3", bpm: 118,
+    songs: { mv: { id: "H8YW1tlsmE8", title: "pporappippam（보라빛 밤）", label: "官方 MV" }, refs: ["Heroine", "You Can't Sit With Us"] },
     info: {
       drums: "穩定大鼓、大空間感的小鼓、突發的打擊點",
       chords: "A 小調：Am – F – C – G",
@@ -327,6 +402,7 @@ const MODULES = [
   },
   {
     id: "changmo", photo: "asset/changmo.jpg", focus: "50% 25%", name: "CHANGMO", tag: "旋律嘻哈 × Trap", color: "#6f7f75", bpm: 140,
+    songs: { mv: { id: "lOrU0MH0bMk", title: "METEOR", label: "官方 MV" }, refs: ["Maestro", "Hyperstar"] },
     info: {
       drums: "trap 半速感：稀疏大鼓、第三拍小鼓、快速 hi-hat",
       chords: "C 小調：Cm – A♭ – E♭ – G",
@@ -346,6 +422,7 @@ const MODULES = [
   },
   {
     id: "ashisland", photo: "asset/ash island.jpg", focus: "50% 30%", name: "ASH ISLAND", tag: "憂鬱旋律嘻哈", color: "#5e6673", bpm: 140,
+    songs: { mv: { id: "ujWsKOGpSYQ", title: "Paranoid", label: "官方 MV" }, refs: ["Lonely", "Nightmare"] },
     info: {
       drums: "半速感、偏稀疏的鼓",
       chords: "E 小調：Em – C – G – D",
@@ -365,6 +442,7 @@ const MODULES = [
   },
   {
     id: "bi", photo: "asset/BI.jpg", focus: "50% 35%", name: "B.I", tag: "嘻哈 × 流行搖滾", color: "#a08c6a", bpm: 100,
+    songs: { mv: { id: "r9h4gRZAGv8", title: "COSMOS", label: "官方 MV" }, refs: ["Waterfall", "Keep Me Up"] },
     info: {
       drums: "粗獷的流行搖滾鼓，每四小節一段過門",
       chords: "B 小調：Bm – G – D – A",
@@ -500,26 +578,151 @@ function refresh(immediate = false) {
 }
 
 const playBtn = document.getElementById("playBtn");
-playBtn.addEventListener("click", () => {
-  state.playing = !state.playing;
-  playBtn.classList.toggle("playing", state.playing);
-  document.getElementById("playLabel").textContent = state.playing ? "停止" : "播放";
-  if (state.playing) {
+/* 生成音樂的播放／停止；播放時會暫停原曲 */
+function setPlaying(on, stopMessage = "已停止") {
+  state.playing = on;
+  playBtn.classList.toggle("playing", on);
+  document.getElementById("playLabel").textContent = on ? "停止" : "播放";
+  if (on) {
+    pauseOriginal();
     refresh(true);
   } else {
     if (state.ready) hush();
-    setStatus("已停止");
+    setStatus(stopMessage);
   }
-});
+  updateAB();
+}
+playBtn.addEventListener("click", () => setPlaying(!state.playing));
 
 document.getElementById("runBtn").addEventListener("click", () => {
-  if (!state.playing) {
-    state.playing = true;
-    playBtn.classList.add("playing");
-    document.getElementById("playLabel").textContent = "停止";
-  }
+  if (!state.playing) setPlaying(true);
   play(document.getElementById("code").value);
 });
+
+/* ---------- 對照原曲（YouTube 官方 MV） ----------
+   嵌入官方頻道上傳的 MV，不在本站存放任何原曲音檔。
+   原曲開始播放時自動停止生成音樂；反之亦然。 */
+let ytPlayer = null;      // YT.Player 物件（API 載入成功時）
+let ytPlaying = false;
+let ytApi = null;
+const YT_ERRORS = {
+  2: "影片網址有誤", 5: "瀏覽器無法播放這支影片", 100: "影片已被移除或設為私人",
+  101: "這支影片不允許嵌入播放", 150: "這支影片不允許嵌入播放",
+  153: "本機開啟的檔案無法播放 YouTube，請用線上版本（GitHub Pages）開啟"
+};
+
+function loadYouTubeApi() {
+  if (ytApi) return ytApi;
+  ytApi = new Promise((resolve, reject) => {
+    if (window.YT && window.YT.Player) return resolve();
+    window.onYouTubeIframeAPIReady = resolve;
+    const el = document.createElement("script");
+    el.src = "https://www.youtube.com/iframe_api";
+    el.onerror = () => reject(new Error("YouTube API 載入失敗"));
+    document.head.appendChild(el);
+    setTimeout(() => reject(new Error("YouTube API 逾時")), 8000);
+  });
+  return ytApi;
+}
+
+function youtubeWatchUrl(id) { return `https://www.youtube.com/watch?v=${id}`; }
+function youtubeSearchUrl(q) { return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`; }
+
+function renderCompare() {
+  const m = state.module;
+  const mv = m.songs.mv;
+  destroyOriginal();
+  document.getElementById("cmpTitle").textContent = `${m.name} 原曲`;
+  const stage = document.getElementById("cmpStage");
+  stage.innerHTML = `
+    <button class="yt-cover" id="ytCover" aria-label="播放 ${mv.title}">
+      <img src="https://i.ytimg.com/vi/${mv.id}/hqdefault.jpg" alt="">
+      <span class="yt-play"></span>
+      <span class="yt-caption">${mv.title}<small>點擊播放官方影片</small></span>
+    </button>`;
+  document.getElementById("ytCover").addEventListener("click", () => playOriginal());
+
+  const list = document.getElementById("cmpSongs");
+  list.innerHTML = `
+    <li class="song main">
+      <span class="song-name">${mv.title}</span>
+      <span class="song-meta">${mv.label} · 可在本頁播放</span>
+    </li>` +
+    m.songs.refs.map((t) => `
+    <li class="song">
+      <a href="${youtubeSearchUrl(m.name + " " + t)}" target="_blank" rel="noopener">
+        <span class="song-name">${t}</span>
+        <span class="song-meta">在 YouTube 搜尋 ↗</span>
+      </a>
+    </li>`).join("");
+  document.getElementById("cmpOpen").href = youtubeWatchUrl(mv.id);
+  updateAB();
+}
+
+function showOriginalError(msg) {
+  const mv = state.module.songs.mv;
+  ytPlaying = false;
+  document.getElementById("cmpStage").innerHTML = `
+    <div class="yt-error">
+      <p>${msg}</p>
+      <a href="${youtubeWatchUrl(mv.id)}" target="_blank" rel="noopener">改到 YouTube 觀看 ↗</a>
+    </div>`;
+  updateAB();
+}
+
+async function playOriginal() {
+  if (state.playing) setPlaying(false, "原曲播放中，生成音樂已暫停");
+  if (ytPlayer && ytPlayer.playVideo) { ytPlayer.playVideo(); return; }
+
+  const mv = state.module.songs.mv;
+  const stage = document.getElementById("cmpStage");
+  stage.innerHTML = `<div id="ytFrame"></div>`;
+  try {
+    await loadYouTubeApi();
+    if (mv !== state.module.songs.mv) return;   // 等待時已切換歌手
+    ytPlayer = new YT.Player("ytFrame", {
+      host: "https://www.youtube-nocookie.com",
+      videoId: mv.id,
+      playerVars: { autoplay: 1, playsinline: 1, rel: 0 },
+      events: {
+        onStateChange: (e) => {
+          ytPlaying = e.data === YT.PlayerState.PLAYING;
+          if (ytPlaying && state.playing) setPlaying(false, "原曲播放中，生成音樂已暫停");
+          updateAB();
+        },
+        onError: (e) => showOriginalError(YT_ERRORS[e.data] || "影片無法播放")
+      }
+    });
+  } catch (err) {
+    // API 被擋時退回一般嵌入（無法自動互相暫停）
+    console.warn(err);
+    stage.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${mv.id}?autoplay=1&playsinline=1&rel=0"
+      title="${mv.title}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+    ytPlaying = true;
+    updateAB();
+  }
+}
+
+function pauseOriginal() {
+  if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+  else if (ytPlaying) renderCompare();   // 一般嵌入無法控制，只能收起
+  ytPlaying = false;
+}
+
+function destroyOriginal() {
+  if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
+  ytPlayer = null;
+  ytPlaying = false;
+}
+
+function updateAB() {
+  document.getElementById("abGen").classList.toggle("on", state.playing);
+  document.getElementById("abOrig").classList.toggle("on", ytPlaying);
+}
+
+document.getElementById("abGen").addEventListener("click", () => setPlaying(true));
+document.getElementById("abOrig").addEventListener("click", () => playOriginal());
 
 /* ---------- 介面 ---------- */
 function renderModules() {
@@ -562,6 +765,7 @@ function selectModule(m) {
   renderModules();
   renderOutputs();
   renderInfo();
+  renderCompare();
   refresh(true);
 }
 
@@ -602,6 +806,7 @@ renderModules();
 renderTracks();
 renderOutputs();
 renderInfo();
+renderCompare();
 refresh();
 </script>
 </body>

@@ -34,6 +34,7 @@ stack(
 | Mini-notation | Strudel 的節奏語法，用短字串描述節奏，例如 `"bd ~ sd ~"` 代表「大鼓、休止、小鼓、休止」，`*8` 代表重複八次 |
 | [Web Audio API](https://developer.mozilla.org/docs/Web/API/Web_Audio_API) | 瀏覽器內建的音訊引擎，Strudel 用它即時合成鋸齒波、方波、三角波等音色，並處理濾波與殘響 |
 | [Dirt-Samples](https://github.com/tidalcycles/Dirt-Samples) | TidalCycles 社群的開源鼓組音色庫，提供大鼓、小鼓、hi-hat、拍手等聲音 |
+| [YouTube IFrame Player API](https://developers.google.com/youtube/iframe_api_reference) | 嵌入歌手的官方 MV 供對照試聽，並偵測播放狀態，讓原曲與生成音樂互相自動暫停 |
 | HTML / CSS / JavaScript | 介面與互動邏輯，依作業規定全部寫在單一 `index.html` |
 | [GitHub Pages](https://pages.github.com) | 免費部署靜態網頁，push 之後自動更新線上版本 |
 
@@ -50,11 +51,12 @@ stack(
 1. 開啟[線上版本](https://jammie-liu.github.io/designYourSong/)，或下載 `index.html` 後用 Chrome 開啟
 2. 選一張歌手卡片，按「播放」
 3. 調整速度、能量、亮度、空間感，或開關各音軌，聽聽差別
+4. 在「對照原曲」用 A／B 切換，和歌手的官方 MV 比較像不像
 
-需要網路連線，因為 Strudel 與鼓組音色是從網路載入。請不要在檔案預覽視窗中開啟，預覽視窗通常會擋下外部程式。
+需要網路連線，因為 Strudel 與鼓組音色是從網路載入。請不要在檔案預覽視窗中開啟，預覽視窗通常會擋下外部程式。原曲播放器只能在線上版本使用，本機直接開檔時 YouTube 不允許播放。
 
 ## 聲明
 
-本網頁為非官方課堂作業。音樂皆為依風格要素重新編寫的原創循環，未使用任何原曲音檔、旋律或歌詞，與各歌手及經紀公司無關。歌手照片版權屬原權利人。
+本網頁為非官方課堂作業。音樂皆為依風格要素重新編寫的原創循環，未使用任何原曲音檔、旋律或歌詞，與各歌手及經紀公司無關。歌手照片版權屬原權利人；原曲僅透過 YouTube 官方頻道的影片嵌入播放。
 
 Strudel 以 [AGPL-3.0](https://codeberg.org/uzu/strudel) 授權釋出。
